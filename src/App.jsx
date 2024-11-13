@@ -1,5 +1,56 @@
+import { useState } from "react";
 import Navbar from "./component/Navbar.jsx";
+
 function App() {
+  const [todo, setTodo] = useState("");
+  const [todos, setTodos] = useState([]);
+  const [isEditing, setIsEditing] = useState(false); // Track editing state
+  const [editIndex, setEditIndex] = useState(null); // Track index of item being edited
+
+  const handleAdd = () => {
+    if (todo) {
+      const newTodo = { text: todo, completed: false }; // New to-do object with 'completed' field
+      if (isEditing) {
+        const updatedTodos = todos.map((item, index) =>
+          index === editIndex ? { ...item, text: todo } : item
+        );
+        setTodos(updatedTodos);
+        setIsEditing(false);
+        setEditIndex(null);
+      } else {
+        setTodos([...todos, newTodo]);
+      }
+      setTodo("");
+    }
+  };
+
+  const handleChange = (e) => {
+    setTodo(e.target.value);
+  };
+
+  const handleDelete = (index) => {
+    if (window.confirm("Are you sure you want to delete this todo item?")) {
+      const updatedTodos = todos.filter((_, i) => i !== index);
+      setTodos(updatedTodos);
+    }
+    // else {
+    //   // Do nothing if user cancels the delete operation
+    // }
+  };
+
+  const handleEdit = (index) => {
+    setTodo(todos[index].text); // Set only the text of the selected to-do item
+    setIsEditing(true); // Set editing state to true
+    setEditIndex(index); // Store index of item being edited
+  };
+
+  const handleCheckbox = (index) => {
+    const updatedTodos = todos.map((item, i) =>
+      i === index ? { ...item, completed: !item.completed } : item
+    );
+    setTodos(updatedTodos);
+  };
+
   return (
     <>
       <Navbar />
@@ -13,19 +64,45 @@ function App() {
             className="p-2 border-2 border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
             type="text"
             placeholder="Enter your todo"
+            onChange={handleChange}
+            onKeyDown={(e) => e.key === "Enter" && handleAdd()} // Trigger handleAdd on Enter key press
+            value={todo}
           />
           <div className="flex justify-center">
-          <button className="p-3 py-1 text-white bg-blue-800 rounded-md hover:bg-blue-950">Add</button>
-
+            <button
+              onClick={handleAdd}
+              className="p-3 py-1 text-white bg-blue-800 rounded-md hover:bg-blue-950"
+            >
+              {isEditing ? "Update" : "Add"}
+            </button>
           </div>
           <h2 className="text-2xl font-bold">Your Todos</h2>
           <div className="todos">
-            <div className="flex todo">
-              <div className="text">To watch a movie in horror genre.
+            {todos.map((item, index) => (
+              <div className="flex todo" key={index}>
+                <input
+                  type="checkbox"
+                  checked={item.completed}
+                  onChange={() => handleCheckbox(index)}
+                  className="mb-3 mr-2"
+                />
+                <div className={`text ${item.completed ? "line-through" : ""} mb-3`}>
+                  {item.text}
+                </div>
+                <button
+                  onClick={() => handleEdit(index)}
+                  className="p-2 py-1 mx-2 mb-3 text-sm text-white bg-blue-800 rounded-md hover:bg-blue-950"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() => handleDelete(index)}
+                  className="p-2 py-1 mx-0 mb-3 text-sm text-white bg-red-800 rounded-md hover:bg-red-950"
+                >
+                  Delete
+                </button>
               </div>
-              <button className="p-2 py-1 mx-2 text-sm text-white bg-red-800 rounded-md hover:bg-red-950">Delete</button>
-              <button className="p-2 py-1 mx-0 text-sm text-white bg-blue-800 rounded-md hover:bg-blue-950">Edit</button>
-            </div>
+            ))}
           </div>
         </div>
       </div>
