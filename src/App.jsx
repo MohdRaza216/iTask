@@ -33,9 +33,6 @@ function App() {
       const updatedTodos = todos.filter((_, i) => i !== index);
       setTodos(updatedTodos);
     }
-    // else {
-    //   // Do nothing if user cancels the delete operation
-    // }
   };
 
   const handleEdit = (index) => {
@@ -78,29 +75,41 @@ function App() {
           </div>
           <h2 className="text-2xl font-bold">Your Todos</h2>
           <div className="todos">
+            {todos.length === 0 && (
+              <div className="m-5">No Todos to display!</div>
+            )}
             {todos.map((item, index) => (
-              <div className="flex todo" key={index}>
-                <input
-                  type="checkbox"
-                  checked={item.completed}
-                  onChange={() => handleCheckbox(index)}
-                  className="mb-3 mr-2"
-                />
-                <div className={`text ${item.completed ? "line-through" : ""} mb-3`}>
-                  {item.text}
+              <div className="flex justify-between w-1/3 todo " key={index}>
+                <div className="flex items-baseline gap-5 checkbox">
+                  <input
+                    type="checkbox"
+                    checked={item.completed}
+                    onChange={() => handleCheckbox(index)}
+                    className="mb-3 mr-2"
+                    value={item.completed}
+                  />
+                  <div
+                    className={`text ${
+                      item.completed ? "line-through" : ""
+                    } mb-3`}
+                  >
+                    {item.text}
+                  </div>
                 </div>
-                <button
-                  onClick={() => handleEdit(index)}
-                  className="p-2 py-1 mx-2 mb-3 text-sm text-white bg-blue-800 rounded-md hover:bg-blue-950"
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => handleDelete(index)}
-                  className="p-2 py-1 mx-0 mb-3 text-sm text-white bg-red-800 rounded-md hover:bg-red-950"
-                >
-                  Delete
-                </button>
+                <div className="flex h-full buttons">
+                  <button
+                    onClick={() => handleEdit(index)}
+                    className="p-2 py-1 mx-2 mb-3 text-sm text-white bg-blue-800 rounded-md hover:bg-blue-950"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDelete(index)}
+                    className="p-2 py-1 mx-0 mb-3 text-sm text-white bg-red-800 rounded-md hover:bg-red-950"
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
             ))}
           </div>
