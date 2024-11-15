@@ -1,15 +1,17 @@
 import { useState } from "react";
 import Navbar from "./component/Navbar.jsx";
+import { FaEdit } from "react-icons/fa";
+import { MdDelete } from "react-icons/md";
 
 function App() {
   const [todo, setTodo] = useState("");
   const [todos, setTodos] = useState([]);
-  const [isEditing, setIsEditing] = useState(false); // Track editing state
-  const [editIndex, setEditIndex] = useState(null); // Track index of item being edited
+  const [isEditing, setIsEditing] = useState(false);
+  const [editIndex, setEditIndex] = useState(null);
 
   const handleAdd = () => {
-    if (todo) {
-      const newTodo = { text: todo, completed: false }; // New to-do object with 'completed' field
+    if (todo.trim()) {
+      const newTodo = { text: todo, completed: false };
       if (isEditing) {
         const updatedTodos = todos.map((item, index) =>
           index === editIndex ? { ...item, text: todo } : item
@@ -36,9 +38,9 @@ function App() {
   };
 
   const handleEdit = (index) => {
-    setTodo(todos[index].text); // Set only the text of the selected to-do item
-    setIsEditing(true); // Set editing state to true
-    setEditIndex(index); // Store index of item being edited
+    setTodo(todos[index].text);
+    setIsEditing(true);
+    setEditIndex(index);
   };
 
   const handleCheckbox = (index) => {
@@ -46,6 +48,12 @@ function App() {
       i === index ? { ...item, completed: !item.completed } : item
     );
     setTodos(updatedTodos);
+  };
+
+  const handleClear = () => {
+    if (window.confirm("Are you sure you want to clear all todo items?")) {
+      setTodos([]);
+    }
   };
 
   return (
@@ -62,31 +70,38 @@ function App() {
             type="text"
             placeholder="Enter your todo"
             onChange={handleChange}
-            onKeyDown={(e) => e.key === "Enter" && handleAdd()} // Trigger handleAdd on Enter key press
+            onKeyDown={(e) => e.key === "Enter" && handleAdd()}
             value={todo}
           />
           <div className="flex justify-center">
             <button
               onClick={handleAdd}
-              className="p-3 py-1 text-white bg-blue-800 rounded-md hover:bg-blue-950"
+              className="p-3 py-1 text-white bg-blue-800 rounded-full hover:bg-blue-950 w-[55%] "
             >
               {isEditing ? "Update" : "Add"}
             </button>
           </div>
-          <h2 className="text-2xl font-bold">Your Todos</h2>
+          <div className="flex justify-between">
+            <h2 className="text-2xl font-bold">Your Todos</h2>
+            <button
+              className="p-3 py-1 text-white bg-red-800 rounded-md hover:bg-red-950"
+              onClick={handleClear}
+            >
+              Clear All Todos
+            </button>
+          </div>
           <div className="todos">
             {todos.length === 0 && (
               <div className="m-5">No Todos to display!</div>
             )}
             {todos.map((item, index) => (
-              <div className="flex justify-between w-1/3 todo " key={index}>
+              <div className="flex justify-between w-[55%] todo" key={index}>
                 <div className="flex items-baseline gap-5 checkbox">
                   <input
                     type="checkbox"
                     checked={item.completed}
                     onChange={() => handleCheckbox(index)}
                     className="mb-3 mr-2"
-                    value={item.completed}
                   />
                   <div
                     className={`text ${
@@ -99,15 +114,15 @@ function App() {
                 <div className="flex h-full buttons">
                   <button
                     onClick={() => handleEdit(index)}
-                    className="p-2 py-1 mx-2 mb-3 text-sm text-white bg-blue-800 rounded-md hover:bg-blue-950"
+                    className="p-3 py-1 mx-2 mb-3 text-sm text-white bg-blue-800 rounded-md hover:bg-blue-950"
                   >
-                    Edit
+                    <FaEdit />
                   </button>
                   <button
                     onClick={() => handleDelete(index)}
-                    className="p-2 py-1 mx-0 mb-3 text-sm text-white bg-red-800 rounded-md hover:bg-red-950"
+                    className="p-3 py-1 mx-0 mb-3 text-sm text-white bg-red-800 rounded-md hover:bg-red-950"
                   >
-                    Delete
+                    <MdDelete />
                   </button>
                 </div>
               </div>
