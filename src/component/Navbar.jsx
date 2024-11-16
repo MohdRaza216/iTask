@@ -1,6 +1,6 @@
 const Navbar = () => {
   return (
-    <nav className='flex justify-between py-2 text-white bg-indigo-900'>
+    <nav className='flex justify-around py-2 text-white bg-indigo-900'>
         <div className="logo">
             <span className='mx-8 text-xl font-bold'>iTask</span>
         </div>

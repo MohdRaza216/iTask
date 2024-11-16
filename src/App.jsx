@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Navbar from "./component/Navbar.jsx";
 import { FaEdit } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
@@ -8,10 +8,35 @@ function App() {
   const [todos, setTodos] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
   const [editIndex, setEditIndex] = useState(null);
+  const [showFinished, setShowFinished] = useState(true);
+
+  // To prevent initial overwriting
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  // Load todos from localStorage on initial render
+  useEffect(() => {
+    const savedTodos = JSON.parse(localStorage.getItem("todos")) || [];
+    console.log("Loaded todos from localStorage:", savedTodos);
+    setTodos(savedTodos);
+    setIsLoaded(true); // Indicate that initial loading is complete
+  }, []);
+
+  // Save todos to localStorage when `todos` changes
+  useEffect(() => {
+    if (isLoaded) {
+      console.log("Saving todos to localStorage:", todos);
+      localStorage.setItem("todos", JSON.stringify(todos));
+    }
+  }, [todos, isLoaded]);
 
   const handleAdd = () => {
     if (todo.trim()) {
       const newTodo = { text: todo, completed: false };
+      const isDuplicate = todos.some((item) => item.text === todo.trim());
+      if (isDuplicate) {
+        alert("This task already exists!");
+        return;
+      }
       if (isEditing) {
         const updatedTodos = todos.map((item, index) =>
           index === editIndex ? { ...item, text: todo } : item
@@ -59,7 +84,7 @@ function App() {
   return (
     <>
       <Navbar />
-      <div className="mx-3 md:container md:mx-auto my-5 rounded-xl p-5 bg-violet-100 min-h-[80vh] md:w-[70%]">
+      <div className="mx-3 md:container md:mx-auto my-5 rounded-xl p-5 bg-violet-100 min-h-[80vh] md:w-[55%]">
         <h1 className="text-3xl font-bold text-center">
           iTask - Manage your todos at one place
         </h1>
@@ -81,52 +106,72 @@ function App() {
               {isEditing ? "Update" : "Add"}
             </button>
           </div>
+          <div className="flex">
+            <input
+              type="checkbox"
+              id="showFinished"
+              name="showFinished"
+              checked={showFinished}
+              onChange={() => setShowFinished(!showFinished)}
+            />
+            <label htmlFor="showFinished" className="mx-2">
+              Show Finished Todos
+            </label>
+          </div>
+          <div className="h-[1px] bg-black opacity-15"></div>
           <div className="flex justify-between">
             <h2 className="text-2xl font-bold">Your Todos</h2>
             <button
               className="p-3 py-1 text-white bg-red-800 rounded-md hover:bg-red-950"
               onClick={handleClear}
             >
-              Clear All Todos
+              Clear List
             </button>
           </div>
           <div className="todos">
             {todos.length === 0 && (
-              <div className="m-5">No Todos to display!</div>
-            )}
-            {todos.map((item, index) => (
-              <div className="flex justify-between w-[55%] todo" key={index}>
-                <div className="flex items-baseline gap-5 checkbox">
-                  <input
-                    type="checkbox"
-                    checked={item.completed}
-                    onChange={() => handleCheckbox(index)}
-                    className="mb-3 mr-2"
-                  />
-                  <div
-                    className={`text ${
-                      item.completed ? "line-through" : ""
-                    } mb-3`}
-                  >
-                    {item.text}
-                  </div>
-                </div>
-                <div className="flex h-full buttons">
-                  <button
-                    onClick={() => handleEdit(index)}
-                    className="p-3 py-1 mx-2 mb-3 text-sm text-white bg-blue-800 rounded-md hover:bg-blue-950"
-                  >
-                    <FaEdit />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(index)}
-                    className="p-3 py-1 mx-0 mb-3 text-sm text-white bg-red-800 rounded-md hover:bg-red-950"
-                  >
-                    <MdDelete />
-                  </button>
-                </div>
+              <div className="m-5 text-center text-gray-500">
+                Start by adding your first task!
               </div>
-            ))}
+            )}
+
+            {todos.map(
+              (item, index) =>
+                (showFinished || !item.completed) && (
+                  <div className="flex justify-between todo" key={index}>
+                    <div className="flex items-baseline gap-5 checkbox">
+                      <input
+                        type="checkbox"
+                        checked={item.completed}
+                        onChange={() => handleCheckbox(index)}
+                        className="mb-3 mr-2"
+                      />
+                      <div
+                        className={`text ${
+                          item.completed ? "line-through" : ""
+                        } mb-3`}
+                      >
+                        {item.text}
+                      </div>
+                    </div>
+                    <div className="flex h-full buttons">
+                      <button
+                        aria-label={`Edit todo: ${item.text}`}
+                        onClick={() => handleEdit(index)}
+                        className="p-3 py-1 mx-2 mb-3 text-sm text-white bg-blue-800 rounded-md hover:bg-blue-950"
+                      >
+                        <FaEdit />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(index)}
+                        className="p-3 py-1 mx-0 mb-3 text-sm text-white bg-red-800 rounded-md hover:bg-red-950"
+                      >
+                        <MdDelete />
+                      </button>
+                    </div>
+                  </div>
+                )
+            )}
           </div>
         </div>
       </div>
