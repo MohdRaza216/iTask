@@ -2,32 +2,29 @@ import { useEffect, useState } from "react";
 import Navbar from "./component/Navbar.jsx";
 import { FaEdit } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function App() {
   const [todo, setTodo] = useState("");
   const [todos, setTodos] = useState([]);
-  const [isEditing, setIsEditing] = useState(false);
-  const [editIndex, setEditIndex] = useState(null);
   const [showFinished, setShowFinished] = useState(true);
 
-  // To prevent initial overwriting
-  const [isLoaded, setIsLoaded] = useState(false);
+  // Modal state
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editTodo, setEditTodo] = useState("");
+  const [editIndex, setEditIndex] = useState(null);
 
   // Load todos from localStorage on initial render
   useEffect(() => {
     const savedTodos = JSON.parse(localStorage.getItem("todos")) || [];
-    console.log("Loaded todos from localStorage:", savedTodos);
     setTodos(savedTodos);
-    setIsLoaded(true); // Indicate that initial loading is complete
   }, []);
 
   // Save todos to localStorage when `todos` changes
   useEffect(() => {
-    if (isLoaded) {
-      console.log("Saving todos to localStorage:", todos);
-      localStorage.setItem("todos", JSON.stringify(todos));
-    }
-  }, [todos, isLoaded]);
+    localStorage.setItem("todos", JSON.stringify(todos));
+  }, [todos]);
 
   const handleAdd = () => {
     if (todo.trim()) {
@@ -37,35 +34,36 @@ function App() {
         alert("This task already exists!");
         return;
       }
-      if (isEditing) {
-        const updatedTodos = todos.map((item, index) =>
-          index === editIndex ? { ...item, text: todo } : item
-        );
-        setTodos(updatedTodos);
-        setIsEditing(false);
-        setEditIndex(null);
-      } else {
-        setTodos([...todos, newTodo]);
-      }
+      setTodos([...todos, newTodo]);
+      toast.success("Todo added successfully!");
       setTodo("");
     }
-  };
-
-  const handleChange = (e) => {
-    setTodo(e.target.value);
   };
 
   const handleDelete = (index) => {
     if (window.confirm("Are you sure you want to delete this todo item?")) {
       const updatedTodos = todos.filter((_, i) => i !== index);
       setTodos(updatedTodos);
+      toast.error("Todo deleted successfully!");
     }
   };
 
-  const handleEdit = (index) => {
-    setTodo(todos[index].text);
-    setIsEditing(true);
+  const handleEditModal = (index) => {
+    setEditTodo(todos[index].text);
     setEditIndex(index);
+    setIsModalOpen(true);
+  };
+
+  const handleSaveEdit = () => {
+    if (editTodo.trim()) {
+      const updatedTodos = todos.map((item, index) =>
+        index === editIndex ? { ...item, text: editTodo } : item
+      );
+      setTodos(updatedTodos);
+      toast.success("Todo updated successfully!");
+      setIsModalOpen(false);
+      setEditTodo("");
+    }
   };
 
   const handleCheckbox = (index) => {
@@ -78,11 +76,13 @@ function App() {
   const handleClear = () => {
     if (window.confirm("Are you sure you want to clear all todo items?")) {
       setTodos([]);
+      toast.error("All todos cleared successfully!");
     }
   };
 
   return (
     <>
+      <ToastContainer position="top-right" autoClose={3000} />
       <Navbar />
       <div className="mx-3 md:container md:mx-auto my-5 rounded-xl p-5 bg-violet-100 min-h-[80vh] md:w-[55%]">
         <h1 className="text-3xl font-bold text-center">
@@ -94,7 +94,7 @@ function App() {
             className="p-2 border-2 border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
             type="text"
             placeholder="Enter your todo"
-            onChange={handleChange}
+            onChange={(e) => setTodo(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleAdd()}
             value={todo}
           />
@@ -103,7 +103,7 @@ function App() {
               onClick={handleAdd}
               className="p-3 py-1 text-white bg-blue-800 rounded-full hover:bg-blue-950 w-[55%] "
             >
-              {isEditing ? "Update" : "Add"}
+              Add
             </button>
           </div>
           <div className="flex">
@@ -157,7 +157,7 @@ function App() {
                     <div className="flex h-full buttons">
                       <button
                         aria-label={`Edit todo: ${item.text}`}
-                        onClick={() => handleEdit(index)}
+                        onClick={() => handleEditModal(index)}
                         className="p-3 py-1 mx-2 mb-3 text-sm text-white bg-blue-800 rounded-md hover:bg-blue-950"
                       >
                         <FaEdit />
@@ -175,6 +175,36 @@ function App() {
           </div>
         </div>
       </div>
+
+      {isModalOpen && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="p-5 bg-white rounded-md">
+            <h2 className="text-xl font-bold">Edit Todo</h2>
+            <input
+              type="text"
+              value={editTodo}
+              onChange={(e) => setEditTodo(e.target.value)}
+              className="w-full p-2 my-3 border border-gray-300 rounded-md"
+              onKeyDown={(e) => e.key === "Enter" && handleSaveEdit()}
+
+            />
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="p-2 text-white bg-red-600 rounded-md"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveEdit}
+                className="p-2 text-white bg-blue-600 rounded-md"
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
