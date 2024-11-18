@@ -15,23 +15,25 @@ function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editTodo, setEditTodo] = useState("");
   const [editIndex, setEditIndex] = useState(null);
+// To prevent initial overwriting
+const [isLoaded, setIsLoaded] = useState(false);
 
-  // Load todos from localStorage on initial render
-  useEffect(() => {
-    const savedTodos = JSON.parse(localStorage.getItem("todos")) || [];
-    setTodos(savedTodos);
-  }, []);
+// Load todos from localStorage on initial render
+useEffect(() => {
+  const savedTodos = JSON.parse(localStorage.getItem("todos")) || [];
+  console.log("Loaded todos from localStorage:", savedTodos);
+  setTodos(savedTodos);
+  setIsLoaded(true); // Indicate that initial loading is complete
+}, []);
 
-  // Save todos to localStorage when `todos` changes
-  useEffect(() => {
+// Save todos to localStorage when `todos` changes
+useEffect(() => {
+  if (isLoaded) {
+    console.log("Saving todos to localStorage:", todos);
     localStorage.setItem("todos", JSON.stringify(todos));
-  }, [todos]);
-  
-  useEffect(() => {
-    if (isModalOpen) {
-      document.getElementById("editTodoInput")?.focus();
-    }
-  }, [isModalOpen]);
+  }
+}, [todos, isLoaded]);
+
   
   const handleAdd = () => {
     if (todo.trim()) {
