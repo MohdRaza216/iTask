@@ -4,6 +4,7 @@ import { FaEdit } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { v4 as uuidv4 } from "uuid";
 
 function App() {
   const [todo, setTodo] = useState("");
@@ -25,20 +26,31 @@ function App() {
   useEffect(() => {
     localStorage.setItem("todos", JSON.stringify(todos));
   }, [todos]);
-
+  
+  useEffect(() => {
+    if (isModalOpen) {
+      document.getElementById("editTodoInput")?.focus();
+    }
+  }, [isModalOpen]);
+  
   const handleAdd = () => {
     if (todo.trim()) {
-      const newTodo = { text: todo, completed: false };
+      const newTodo = { id: uuidv4(), text: todo.trim(), completed: false };
       const isDuplicate = todos.some((item) => item.text === todo.trim());
       if (isDuplicate) {
-        alert("This task already exists!");
+        toast.error("This task already exists!");
         return;
       }
       setTodos([...todos, newTodo]);
       toast.success("Todo added successfully!");
       setTodo("");
     }
+    if (!todo.trim()) {
+      toast.warn("Todo cannot be empty!");
+      return;
+    }
   };
+  
 
   const handleDelete = (index) => {
     if (window.confirm("Are you sure you want to delete this todo item?")) {
@@ -57,12 +69,16 @@ function App() {
   const handleSaveEdit = () => {
     if (editTodo.trim()) {
       const updatedTodos = todos.map((item, index) =>
-        index === editIndex ? { ...item, text: editTodo } : item
+        index === editIndex ? { ...item, text: editTodo.trim() } : item
       );
       setTodos(updatedTodos);
       toast.success("Todo updated successfully!");
       setIsModalOpen(false);
       setEditTodo("");
+    };
+    if (!editTodo.trim()) {
+      toast.warn("Todo cannot be empty!");
+      return;
     }
   };
 
@@ -138,7 +154,7 @@ function App() {
             {todos.map(
               (item, index) =>
                 (showFinished || !item.completed) && (
-                  <div className="flex justify-between todo" key={index}>
+                  <div className="flex justify-between todo" key={item.id}>
                     <div className="flex items-baseline gap-5 checkbox">
                       <input
                         type="checkbox"
@@ -177,17 +193,19 @@ function App() {
       </div>
 
       {isModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 modal">
+
           <div className="p-5 bg-white rounded-md">
             <h2 className="text-xl font-bold">Edit Todo</h2>
             <input
+              id="editTodoInput"
               type="text"
               value={editTodo}
               onChange={(e) => setEditTodo(e.target.value)}
               className="w-full p-2 my-3 border border-gray-300 rounded-md"
               onKeyDown={(e) => e.key === "Enter" && handleSaveEdit()}
-
             />
+
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setIsModalOpen(false)}
